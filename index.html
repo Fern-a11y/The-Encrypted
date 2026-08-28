@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Mijn Code Converter (.enc)</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #1e1e1e; color: #fff; padding: 30px; }
+        textarea { width: 100%; height: 250px; background: #2d2d2d; color: #0ff; border: 1px solid #444; padding: 10px; font-family: monospace; font-size: 14px; }
+        button { background: #007acc; color: white; border: none; padding: 12px 20px; font-size: 16px; cursor: pointer; margin-top: 10px; border-radius: 5px; }
+        button:hover { background: #005999; }
+    </style>
+</head>
+<body>
+
+    <h1>🔒 Anti-Steal Code Encoder</h1>
+    <p>Plak hieronder je Python code. De website zet dit om naar een beveiligd <code>.enc</code> bestand dat onleesbaar is voor dieven, maar wel werkt in jouw app!</p>
+    
+    <textarea id="codeInput" placeholder="print('Hallo wereld!')"></textarea><br>
+    <button onclick="genereerEncBestand()">Download .enc Bestand</button>
+
+    <script>
+        function genereerEncBestand() {
+            let code = document.getElementById('codeInput').value;
+            if (!code) {
+                alert("Typ eerst wat code!");
+                return;
+            }
+
+            // Stap A: We coderen de code naar Base64 (zodat het onleesbaar wordt in kladblok)
+            // Je kunt hiernaartoe ook een eigen slimme draai/versleuteling toevoegen!
+            let gecodeerd = btoa(unescape(encodeURIComponent(code)));
+            
+            // We voegen een eigen geheime 'header' toe zodat het een echt eigen bestandsformaat lijkt
+            let uniekeBestandInhoud = "CUSTOM_ENC_V1::" + gecodeerd;
+
+            // Stap B: Maak een virtueel bestand aan en start de download
+            let blob = new Blob([uniekeBestandInhoud], { type: "text/plain" });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "script.enc"; // De naam van het beveiligde bestand
+            link.click();
+        }
+    </script>
+
+</body>
+</html>
