@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>The Encrypted</title>
-    <!-- QR Code Bibliotheek -->
+    <title>Rik's Custom Code Studio</title>
+    <!-- QR Code Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 0; margin: 0; }
         
-        /* Cloudflare Verificatie Scherm */
+        /* Cloudflare Verification Overlay */
         #cf-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
         .cf-box { background: #1e293b; padding: 40px; border-radius: 12px; border: 1px solid #334155; text-align: center; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .spinner { width: 40px; height: 40px; border: 4px solid #334155; border-top: 4px solid #38bdf8; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
@@ -52,7 +52,7 @@
     <div id="cf-overlay">
         <div class="cf-box">
             <h3 style="color: #38bdf8; margin-top:0;">Cloudflare Security</h3>
-            <p>Checking your browser before accessing  Code Studio...</p>
+            <p>Checking your browser before accessing Code Studio...</p>
             <div class="spinner"></div>
             <p style="font-size: 11px; color: #64748b;">Verifying human presence...</p>
         </div>
@@ -60,7 +60,7 @@
 
     <!-- Menubar -->
     <div class="menubar">
-        <div class="logo">🚀  Code Studio</div>
+        <div class="logo">🚀 Rik's Code Studio</div>
         <div class="menu-links">
             <button onclick="switchTab('creator')">Code Creator</button>
             <button onclick="switchTab('reader')">Read / Decode .enc</button>
@@ -71,7 +71,7 @@
     <!-- TAB 1: CODE CREATOR -->
     <div id="creator" class="container tab-content active">
         <h2>🔒 Create & Save Custom Script</h2>
-        <p>Write your code, store it locally on your device, download the file, or generate a QR code.</p>
+        <p>Write your code to generate a self-executing <code>.enc</code> file that runs directly on Python.</p>
         
         <label for="codeInput">Source Code:</label>
         <textarea id="codeInput" placeholder="print('Hello World!')" oninput="updatePreview()"></textarea>
@@ -79,8 +79,8 @@
         <label for="fileName">File Name:</label>
         <input type="text" id="fileName" value="myscript" placeholder="Enter file name">
 
-        <label>Live Encrypted Preview:</label>
-        <div id="previewBox" class="preview-box">CUSTOM_ENC_V1::...</div>
+        <label>Live Executable Script Preview:</label>
+        <div id="previewBox" class="preview-box">import base64...</div>
 
         <button class="btn" onclick="saveAndDownloadFile()">💾 Save to Device & Download (.enc)</button>
         
@@ -88,10 +88,10 @@
         <div class="qr-container" id="qrcode"></div>
     </div>
 
-    <!-- TAB 2: READER / DECODER (.enc inlezen) -->
+    <!-- TAB 2: READER / DECODER -->
     <div id="reader" class="container tab-content">
         <h2>📖 Read / Decode .enc File</h2>
-        <p>Upload your <code>.enc</code> file to properly decode and read the raw code back.</p>
+        <p>Upload your <code>.enc</code> file to check the raw code inside it.</p>
         
         <label for="uploadInput">Upload .enc file:</label>
         <input type="file" id="uploadInput" accept=".enc,.txt" onchange="loadEncFile(event)">
@@ -112,11 +112,10 @@
     <div class="footer">Custom Code Studio • Protected by Cloudflare</div>
 
     <script>
-        // Cloudflare verificatie simulatie bij laden van de pagina
         window.onload = function() {
             setTimeout(function() {
                 document.getElementById('cf-overlay').style.display = 'none';
-            }, 1800); // 1.8 seconden verificatiescherm
+            }, 1800);
             updatePreview();
         };
 
@@ -130,7 +129,6 @@
             }
         }
 
-        // Veilige UTF-8 Base64 conversie functies
         function safeBase64Encode(str) {
             return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
                 return String.fromCharCode('0x' + p1);
@@ -143,51 +141,66 @@
             return decodeURIComponent(bytes.reduce((acc, byte) => acc + '%' + byte.toString(16).padStart(2, '0'), ''));
         }
 
-        function getEncodedContent() {
-            let code = document.getElementById('codeInput').value;
-            if (!code) return "CUSTOM_ENC_V1::";
+        function generateExecutableScript(code) {
+            if (!code) return "# Type code first";
             let encodedCode = safeBase64Encode(code);
-            return "CUSTOM_ENC_V1::" + encodedCode;
+            return `import base64
+
+# --- RIK'S SELF-EXECUTING ENCRYPTED SCRIPT ---
+ENCRYPTED_PAYLOAD = "${encodedCode}"
+
+def __execute_self():
+    try:
+        decoded_bytes = base64.b64decode(ENCRYPTED_PAYLOAD.encode('utf-8'))
+        try:
+            raw_code = decoded_bytes.decode('utf-8')
+        except UnicodeDecodeError:
+            raw_code = decoded_bytes.decode('latin1')
+        exec(raw_code, {})
+    except Exception as e:
+        print(f"Error executing encrypted script: {e}")
+
+if __name__ == "__main__":
+    __execute_self()
+`;
         }
 
         let qrCodeInstance = new QRCode(document.getElementById("qrcode"), {
-            text: "CUSTOM_ENC_V1::",
+            text: "import base64",
             width: 128,
             height: 128
         });
 
         function updatePreview() {
-            let content = getEncodedContent();
-            document.getElementById('previewBox').innerText = content;
+            let code = document.getElementById('codeInput').value;
+            let fullScript = generateExecutableScript(code);
+            document.getElementById('previewBox').innerText = fullScript;
             qrCodeInstance.clear();
-            qrCodeInstance.makeCode(content.substring(0, 300));
+            qrCodeInstance.makeCode(fullScript.substring(0, 300));
         }
 
         function saveAndDownloadFile() {
             let code = document.getElementById('codeInput').value;
             let customName = document.getElementById('fileName').value.trim() || "script";
-            let finalFileContent = getEncodedContent();
+            let fullScript = generateExecutableScript(code);
 
             if (!code) {
                 alert("Please type some code first!");
                 return;
             }
 
-            // Opslaan op apparaat (localStorage)
             localProjects.push({ name: customName + ".enc", code: code, date: new Date().toLocaleDateString() });
             localStorage.setItem('rik_local_projects', JSON.stringify(localProjects));
 
-            // Download starten
-            let blob = new Blob([finalFileContent], { type: "text/plain" });
+            let blob = new Blob([fullScript], { type: "text/plain" });
             let link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = customName + ".enc";
             link.click();
 
-            alert("Script saved to your device and downloaded successfully!");
+            alert("Self-executing .enc file downloaded successfully!");
         }
 
-        // Bestand inlezen en correct decoderen
         function loadEncFile(event) {
             let file = event.target.files[0];
             if (!file) return;
@@ -195,12 +208,14 @@
             let reader = new FileReader();
             reader.onload = function(e) {
                 let content = e.target.result;
-                if (!content.startsWith("CUSTOM_ENC_V1::")) {
-                    alert("Error: Invalid or unsupported .enc file format!");
-                    return;
-                }
                 try {
-                    let encodedData = content.replace("CUSTOM_ENC_V1::", "");
+                    // Extract payload from self-executing python template
+                    let match = content.match(/ENCRYPTED_PAYLOAD\s*=\s*"([^"]+)"/);
+                    if (!match) {
+                        alert("Error: Invalid or unsupported .enc file format!");
+                        return;
+                    }
+                    let encodedData = match[1];
                     let originalCode = safeBase64Decode(encodedData);
                     document.getElementById('decodedOutput').value = originalCode;
                 } catch(err) {
