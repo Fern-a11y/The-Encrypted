@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Rik's Custom Code Studio</title>
+    <title>Custom Code Studio</title>
     <!-- QR Code Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
@@ -60,7 +60,7 @@
 
     <!-- Menubar -->
     <div class="menubar">
-        <div class="logo">🚀 Rik's Code Studio</div>
+        <div class="logo">🚀  's Code Studio</div>
         <div class="menu-links">
             <button onclick="switchTab('creator')">Code Creator</button>
             <button onclick="switchTab('reader')">Read / Decode .enc</button>
@@ -119,7 +119,7 @@
             updatePreview();
         };
 
-        let localProjects = JSON.parse(localStorage.getItem('rik_local_projects')) || [];
+        let localProjects = JSON.parse(localStorage.getItem(' _local_projects')) || [];
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -146,7 +146,7 @@
             let encodedCode = safeBase64Encode(code);
             return `import base64
 
-# --- RIK'S SELF-EXECUTING ENCRYPTED SCRIPT ---
+# ---  'S SELF-EXECUTING ENCRYPTED SCRIPT ---
 ENCRYPTED_PAYLOAD = "${encodedCode}"
 
 def __execute_self():
@@ -190,7 +190,7 @@ if __name__ == "__main__":
             }
 
             localProjects.push({ name: customName + ".enc", code: code, date: new Date().toLocaleDateString() });
-            localStorage.setItem('rik_local_projects', JSON.stringify(localProjects));
+            localStorage.setItem(' _local_projects', JSON.stringify(localProjects));
 
             let blob = new Blob([fullScript], { type: "text/plain" });
             let link = document.createElement("a");
@@ -255,7 +255,7 @@ if __name__ == "__main__":
 
         function deleteProject(index) {
             localProjects.splice(index, 1);
-            localStorage.setItem('rik_local_projects', JSON.stringify(localProjects));
+            localStorage.setItem(' _local_projects', JSON.stringify(localProjects));
             renderLocalProjects();
         }
 
