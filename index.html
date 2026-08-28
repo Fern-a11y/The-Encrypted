@@ -3,41 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <title>The Encrypter</title>
+    <!-- QR Code Bibliotheek via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; margin: 0; }
-        .container { max-width: 800px; margin: auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        h1 { color: #38bdf8; margin-top: 0; font-size: 24px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 0; margin: 0; }
+        
+        /* Menubar */
+        .menubar { background: #1e293b; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+        .logo { font-weight: bold; color: #38bdf8; font-size: 18px; }
+        .menu-links { display: flex; gap: 20px; align-items: center; }
+        .menu-links a, .menu-links button { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 14px; text-decoration: none; transition: color 0.2s; }
+        .menu-links a:hover, .menu-links button:hover { color: #38bdf8; }
+        .user-pill { background: #0f172a; padding: 6px 12px; border-radius: 20px; border: 1px solid #334155; font-size: 13px; color: #38bdf8; }
+
+        /* Container layout */
+        .container { max-width: 800px; margin: 30px auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        h2 { color: #38bdf8; margin-top: 0; font-size: 22px; }
         p { color: #94a3b8; font-size: 14px; }
         label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #cbd5e1; }
         input[type="text"] { width: 100%; padding: 10px; margin-top: 5px; background: #0f172a; border: 1px solid #334155; color: #f8fafc; border-radius: 6px; box-sizing: border-box; }
         textarea { width: 100%; height: 200px; background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 12px; font-family: 'Courier New', Courier, monospace; font-size: 14px; border-radius: 6px; margin-top: 5px; box-sizing: border-box; resize: vertical; }
+        
+        .btn { background: #0284c7; color: white; border: none; padding: 12px 20px; font-size: 16px; cursor: pointer; margin-top: 20px; border-radius: 6px; width: 100%; font-weight: bold; transition: background 0.2s; }
+        .btn:hover { background: #0369a1; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
         .preview-box { background: #0f172a; border: 1px dashed #334155; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 12px; color: #f43f5e; max-height: 100px; overflow-y: auto; margin-top: 5px; word-break: break-all; }
-        button { background: #0284c7; color: white; border: none; padding: 12px 20px; font-size: 16px; cursor: pointer; margin-top: 20px; border-radius: 6px; width: 100%; font-weight: bold; transition: background 0.2s; }
-        button:hover { background: #0369a1; }
-        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #64748b; }
+        
+        /* QR Code & Account sectie */
+        .qr-container { display: flex; justify-content: center; margin-top: 20px; background: #fff; padding: 15px; border-radius: 8px; width: fit-content; margin-left: auto; margin-right: auto; }
+        .account-projects { margin-top: 15px; background: #0f172a; padding: 15px; border-radius: 6px; border: 1px solid #334155; }
+        .project-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 13px; }
+        
+        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #64748b; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Paste normal code</h1>
-        <p>Type your script below. It gets automatically converted into your own private file format, No one will be able to see it or copy it.</p>
+    <!-- Menubar -->
+    <div class="menubar">
+        <div class="logo">🚀 Rik's Code Studio</div>
+        <div class="menu-links">
+            <button onclick="switchTab('creator')">Code Creator</button>
+            <button onclick="switchTab('reader')">Read / Decode .enc</button>
+            <button onclick="switchTab('account')">My Account</button>
+            <span class="user-pill" id="userDisplay">👤 Rik (Logged In)</span>
+        </div>
+    </div>
+
+    <!-- TAB 1: CODE CREATOR & SAVE & QR -->
+    <div id="creator" class="container tab-content active">
+        <h2>🔒 Create & Save Custom Script</h2>
+        <p>Write your code, save it to your account, download the file, or generate a QR code.</p>
         
         <label for="codeInput">Source Code:</label>
-        <textarea id="codeInput" placeholder="print('Hello!')" oninput="updatePreview()"></textarea>
+        <textarea id="codeInput" placeholder="print('Hello World!')" oninput="updatePreview()"></textarea>
         
         <label for="fileName">File Name:</label>
         <input type="text" id="fileName" value="myscript" placeholder="Enter file name">
 
-        <label>Live Encrypted Preview (What the file actually looks like inside):</label>
+        <label>Live Encrypted Preview:</label>
         <div id="previewBox" class="preview-box">CUSTOM_ENC_V1::...</div>
 
-        <button onclick="generateCustomFile()">Download Custom File (.enc)</button>
+        <button class="btn" onclick="saveAndDownloadFile()">💾 Save to Account & Download (.enc)</button>
+        
+        <label style="margin-top: 30px; text-align: center;">QR Code for this script:</label>
+        <div class="qr-container" id="qrcode"></div>
+    </div>
+
+    <!-- TAB 2: READER / DECODER (.enc inlezen) -->
+    <div id="reader" class="container tab-content">
+        <h2>📖 Read / Decode .enc File</h2>
+        <p>Upload or paste your <code>.enc</code> file contents to read the raw code back.</p>
+        
+        <label for="uploadInput">Upload .enc file:</label>
+        <input type="file" id="uploadInput" accept=".enc,.txt" onchange="loadEncFile(event)" style="margin-top: 5px; color: #cbd5e1;">
+
+        <label for="decodedOutput">Decoded Readable Code:</label>
+        <textarea id="decodedOutput" placeholder="Decoded code will appear here..." readonly></textarea>
+    </div>
+
+    <!-- TAB 3: ACCOUNT & SAVED FILES -->
+    <div id="account" class="container tab-content">
+        <h2>👤 My Account & Saved Files</h2>
+        <p>Here are all the custom scripts you have saved to your account.</p>
+        <div class="account-projects" id="projectList">
+            <span style="color: #64748b;">No saved scripts yet. Click 'Save to Account' on the creator tab!</span>
+        </div>
     </div>
 
     <div class="footer">Custom Code Studio • Powered by GitHub Pages</div>
 
     <script>
+        // Opslag voor account-projecten in de browser
+        let savedProjects = JSON.parse(localStorage.getItem('rik_projects')) || [];
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if(tabId === 'account') {
+                renderAccountProjects();
+            }
+        }
+
         function getEncodedContent() {
             let code = document.getElementById('codeInput').value;
             if (!code) return "CUSTOM_ENC_V1::";
@@ -45,28 +115,96 @@
             return "CUSTOM_ENC_V1::" + encodedCode;
         }
 
+        let qrCodeInstance = new QRCode(document.getElementById("qrcode"), {
+            text: "CUSTOM_ENC_V1::",
+            width: 128,
+            height: 128
+        });
+
         function updatePreview() {
-            document.getElementById('previewBox').innerText = getEncodedContent();
+            let content = getEncodedContent();
+            document.getElementById('previewBox').innerText = content;
+            
+            // Update QR code (beperk lengte voor QR als het te groot wordt, of geef de code mee)
+            qrCodeInstance.clear();
+            qrCodeInstance.makeCode(content.substring(0, 300)); // Max 300 tekens voor stabiele QR
         }
 
-        function generateCustomFile() {
+        function saveAndDownloadFile() {
             let code = document.getElementById('codeInput').value;
             let customName = document.getElementById('fileName').value.trim() || "script";
+            let finalFileContent = getEncodedContent();
 
             if (!code) {
                 alert("Please type some code first!");
                 return;
             }
 
-            let finalFileContent = getEncodedContent();
+            // 1. Opslaan op account (LocalStorage)
+            savedProjects.push({ name: customName + ".enc", code: code, date: new Date().toLocaleDateString() });
+            localStorage.setItem('rik_projects', JSON.stringify(savedProjects));
 
-            // Maakt automatisch een download aan met jouw vaste eigen extensie (.enc)
+            // 2. Download starten
             let blob = new Blob([finalFileContent], { type: "text/plain" });
             let link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = customName + ".enc"; // Vaste eigen extensie!
+            link.download = customName + ".enc";
             link.click();
+
+            alert("Script successfully saved to your account and downloaded!");
         }
+
+        // Bestand inlezen in de Reader tab
+        function loadEncFile(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let content = e.target.result;
+                if (!content.startswith("CUSTOM_ENC_V1::")) {
+                    alert("Error: Invalid .enc file format!");
+                    return;
+                }
+                try {
+                    let encodedData = content.replace("CUSTOM_ENC_V1::", "");
+                    let decodedBytes = atob(encodedData);
+                    let originalCode = decodeURIComponent(escape(decodedBytes));
+                    document.getElementById('decodedOutput').value = originalCode;
+                } catch(err) {
+                    alert("Could not decode file content.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function renderAccountProjects() {
+            let container = document.getElementById('projectList');
+            if (savedProjects.length === 0) {
+                container.innerHTML = '<span style="color: #64748b;">No saved scripts yet.</span>';
+                return;
+            }
+            
+            let html = "";
+            savedProjects.forEach((proj, index) => {
+                html += `<div class="project-item">
+                    <span>📁 <strong>${proj.name}</strong> (${proj.date})</span>
+                    <span style="color: #38bdf8; cursor: pointer;" onclick="loadProjectToCreator(${index})">Load in Editor</span>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function loadProjectToCreator(index) {
+            let proj = savedProjects[index];
+            document.getElementById('fileName').value = proj.name.replace(".enc", "");
+            document.getElementById('codeInput').value = proj.code;
+            updatePreview();
+            switchTab('creator');
+        }
+
+        // Init initial preview
+        updatePreview();
     </script>
 
 </body>
